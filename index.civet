@@ -91,15 +91,7 @@ function cecil(options: Partial<GenOptions> = {})
       generate({ ...opts, writeLine: console.log}, cb)
   }
 
-function generate(
-  { writeLine, indent}: GenOptions
-  genCb: (
-    code: CodeEmit,
-    helpers: {
-      defer: (cb: =>) => void
-    }
-  ) =>
-)
+function generate({ writeLine, indent}: GenOptions,  genCb: GenCodeBlock)
   root := new N
   stack := [root]
 
@@ -146,6 +138,7 @@ function generate(
     if content?
       padding := [1..depth].map(=> indent).join('')
       writeLine padding + content
+
 
 cecil().log (c, { defer }) =>
   model := 'User'
