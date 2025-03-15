@@ -1,0 +1,75 @@
+CodeEmit ::= (
+  ...args:
+    | [TemplateStringsArray, ...values: unknown[]]
+    | [codeStr: string, cb?: =>]
+) => N
+
+CallPrepped ::= { call(...args: any[]): any }
+Callable<T extends CallPrepped> ::= T & T['call']
+
+// This merges with N's interface so that TS knows N is callable
+interface N
+  (cb: =>): N
+
+class N
+  str: string
+  children: N[] = []
+
+  @(@str: string, runBlock: (self: N, codeBlock?: =>) => = =>)
+    fn := (codeBlock: =>) =>
+      runBlock(@, codeBlock)
+      @
+
+    return Object.setPrototypeOf fn, @
+
+  visit(cb: (n: N, depth: number) => void, depth: number = -1): void
+    cb @, depth
+    for c of @children
+      c.visit cb, depth + 1
+
+function generateString(genCb: (code: CodeEmit) =>)
+  root := new N('')
+  stack := [root]
+
+  function runBlock(self: N, cb?: =>)
+    if cb
+      stack.push self
+      cb()
+      stack.pop()
+
+  code: CodeEmit := (strs, ...rest) =>
+    let src: string
+    cb?: => .= undefined
+
+    if typeof strs is 'string'
+      src = strs
+      cb = rest[0] as (=>)?
+    else
+      [firstStr, ...restStrs] := strs
+      src = firstStr
+      for str of restStrs
+        src += rest.shift()
+        src += str
+
+    n := new N(src, runBlock)
+    stack.at(-1)!.children.push n
+
+    if cb then runBlock n, cb
+
+    n
+
+  genCb(code)
+
+  return root.visit (n, depth) ->
+    padding := [0..depth-1].map(=> '  ').join('')
+    console.log padding, n.str
+
+generateString (c) =>
+  model := 'User'
+  field_name := 'name'
+
+  c`class ${model} extends Model {` =>
+    c(`id: number`) =>
+      c`something`
+    c`2id: number` =>
+      c`2s2omething`

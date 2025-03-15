@@ -1,0 +1,13 @@
+{
+  "name": "cecil-civet",
+  "version": "0.0.1",
+  "main": "index.js",
+  "author": "Mike Nicholaides <mike@nicholaides.com>",
+  "license": "MIT",
+  "devDependencies": {
+    "@danielx/civet": "^0.9.7"
+  },
+  "dependencies": {
+    "typescript": "^5.8.2"
+  }
+}
