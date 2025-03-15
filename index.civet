@@ -16,15 +16,15 @@ class N
 
   depthInc = 0
 
-  visit(cb: (n: N, depth: number) => void, depth: number = 0): void
-    cb @, depth
+  visit({
+    before:: (n: N, depth: number) => void = =>
+    after:: (n: N, depth: number) => void = =>
+    depth:: number = 0
+  }): void
+    before @, depth
     for c of @children
-      c.visit cb, depth + @depthInc
-
-  visitChildrenFirst(cb: (n: N, depth: number) => void, depth: number = -1): void
-    for c of @children
-      c.visit cb, depth + @depthInc
-    cb @, depth
+      c.visit { before, after, depth: depth + @depthInc }
+    after @, depth
 
   undefer()
 
@@ -139,9 +139,9 @@ function generate(
 
   genCb(code, { defer })
 
-  root.visitChildrenFirst .undefer()
+  root.visit after: (n) => n.undefer()
 
-  root.visit (n, depth) =>
+  root.visit before: (n, depth) =>
     content := n.selfContent()
     if content?
       padding := [1..depth].map(=> indent).join('')
@@ -156,6 +156,7 @@ cecil().log (c, { defer }) =>
   defer =>
     c`import ${imports.join(', ')}` =>
       c`from './models'`
+      c``
 
   imports.push 'Import1'
 
