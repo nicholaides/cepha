@@ -2,40 +2,80 @@ CodeEmit ::= (
   ...args:
     | [TemplateStringsArray, ...values: unknown[]]
     | [codeStr: string, cb?: =>]
-) => N
-
-CallPrepped ::= { call(...args: any[]): any }
-Callable<T extends CallPrepped> ::= T & T['call']
+) => Literal
 
 // This merges with N's interface so that TS knows N is callable
-interface N
+interface Callable
   (cb: =>): N
 
 class N
-  str: string
   children: N[] = []
 
-  @(@str: string, runBlock: (self: N, codeBlock?: =>) => = =>)
+  selfContent(): string?
+    undefined
+
+  depthInc = 0
+
+  visit(cb: (n: N, depth: number) => void, depth: number = 0): void
+    cb @, depth
+    for c of @children
+      c.visit cb, depth + @depthInc
+
+  visitChildrenFirst(cb: (n: N, depth: number) => void, depth: number = -1): void
+    for c of @children
+      c.visit cb, depth + @depthInc
+    cb @, depth
+
+  undefer()
+
+Context ::= { runBlock: (current: N, codeBlock: =>) => void }
+
+interface Literal extends Callable
+
+class Literal < N
+  str: string
+  depthInc = 1
+
+  @(@str: string, context: Context)
+    super()
+
     fn := (codeBlock: =>) =>
-      runBlock(@, codeBlock)
+      context.runBlock(@, codeBlock)
       @
 
     return Object.setPrototypeOf fn, @
 
-  visit(cb: (n: N, depth: number) => void, depth: number = -1): void
-    cb @, depth
-    for c of @children
-      c.visit cb, depth + 1
+  selfContent()
+    @str
 
-function generateString(genCb: (code: CodeEmit) =>)
-  root := new N('')
+class Deferred < N
+  @(@context: Context, @block: =>)
+    super()
+
+  undefer()
+    @context.runBlock(@, @block)
+
+function makeContextFn(parentContext: { current: N })
+  (block: =>) =>
+    block()
+
+function generateString(
+  genCb: (
+    code: CodeEmit,
+    helpers: {
+      defer: (cb: =>) => void
+    }
+  ) =>
+)
+  root := new N
   stack := [root]
 
-  function runBlock(self: N, cb?: =>)
-    if cb
-      stack.push self
-      cb()
+  context := {
+    runBlock(parent: N, block: =>)
+      stack.push parent
+      block()
       stack.pop()
+  }
 
   code: CodeEmit := (strs, ...rest) =>
     let src: string
@@ -51,25 +91,40 @@ function generateString(genCb: (code: CodeEmit) =>)
         src += rest.shift()
         src += str
 
-    n := new N(src, runBlock)
+    n := new Literal(src, context)
     stack.at(-1)!.children.push n
 
-    if cb then runBlock n, cb
+    // if called like c "...", => ...
+    if cb then context.runBlock(n, cb)
 
     n
 
-  genCb(code)
+  function defer(cb: =>)
+    n := new Deferred(context, cb)
+    stack.at(-1)!.children.push n
+    n
+
+  genCb(code, { defer })
+
+  root.visitChildrenFirst .undefer()
 
   return root.visit (n, depth) ->
-    padding := [0..depth-1].map(=> '  ').join('')
-    console.log padding, n.str
+    content := n.selfContent()
+    if content?
+      padding := [1..depth].map(=> '  ').join('')
+      console.log padding + content
 
-generateString (c) =>
+generateString (c, { defer }) =>
   model := 'User'
   field_name := 'name'
 
+  imports: string[] := []
+
+  defer =>
+    c`import ${imports.join(', ')}` =>
+      c`from './models'`
+
+  imports.push 'Import1'
+
   c`class ${model} extends Model {` =>
-    c(`id: number`) =>
-      c`something`
-    c`2id: number` =>
-      c`2s2omething`
+    c`somethking`
