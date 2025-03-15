@@ -92,8 +92,9 @@ function cecil(options: Partial<GenOptions> = {})
   }
 
 function generate({ writeLine, indent}: GenOptions,  genCb: GenCodeBlock)
-  root := new N
+  root := new N()
   stack := [root]
+  addChild := (n: N) => stack.at(-1)!.children.push n
 
   context := {
     runBlock(parent: N, block: =>)
@@ -116,18 +117,13 @@ function generate({ writeLine, indent}: GenOptions,  genCb: GenCodeBlock)
         src += rest.shift()
         src += str
 
-    n := new Literal(src, context)
-    stack.at(-1)!.children.push n
-
-    // if called like c "...", => ...
-    if cb then context.runBlock(n, cb)
-
-    n
+    new Literal(src, context)
+      ||> addChild
+      ||> (n) => (cb && context.runBlock(n, cb))
 
   function defer(cb: =>)
-    n := new Deferred(context, cb)
-    stack.at(-1)!.children.push n
-    n
+    new Deferred(context, cb)
+      ||> addChild
 
   genCb(code, { defer })
 
