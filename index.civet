@@ -59,7 +59,40 @@ function makeContextFn(parentContext: { current: N })
   (block: =>) =>
     block()
 
-function generateString(
+GenOptions ::= {
+  indent: string
+  writeLine: (str: string) => void
+}
+GenCodeBlock ::= (
+  code: CodeEmit,
+  helpers: {
+    defer: (cb: =>) => void
+  }
+) =>
+
+function cecil(options: Partial<GenOptions> = {})
+  opts: GenOptions := {
+    indent: '  '
+    writeLine: console.log
+    ...options
+  }
+
+  {
+    string(cb: GenCodeBlock)
+      output .= ''
+      writeLine := (line: string) => output += line + '\n'
+      generate({ ...opts, writeLine }, cb)
+      output
+
+    generate(writeLine: GenOptions['writeLine'], cb: GenCodeBlock)
+      generate({ ...opts, writeLine  }, cb)
+
+    log(cb: GenCodeBlock)
+      generate({ ...opts, writeLine: console.log}, cb)
+  }
+
+function generate(
+  { writeLine, indent}: GenOptions
   genCb: (
     code: CodeEmit,
     helpers: {
@@ -108,13 +141,13 @@ function generateString(
 
   root.visitChildrenFirst .undefer()
 
-  return root.visit (n, depth) ->
+  root.visit (n, depth) =>
     content := n.selfContent()
     if content?
-      padding := [1..depth].map(=> '  ').join('')
-      console.log padding + content
+      padding := [1..depth].map(=> indent).join('')
+      writeLine padding + content
 
-generateString (c, { defer }) =>
+cecil().log (c, { defer }) =>
   model := 'User'
   field_name := 'name'
 
