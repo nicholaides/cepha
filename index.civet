@@ -2,25 +2,20 @@ CodeEmit ::= (
   ...args:
     | [TemplateStringsArray, ...values: unknown[]]
     | [codeStr: string, cb?: =>]
-) => Literal
-
-// This merges with N's interface so that TS knows N is callable
-interface Callable
-  (cb: =>): N
+) => Literal|Template
 
 class N
   children: N[] = []
+  depthInc = 0
 
   selfContent(): string?
     undefined
 
-  depthInc = 0
-
   visit({
-    before:: (n: N, depth: number) => void = =>
-    after:: (n: N, depth: number) => void = =>
-    depth:: number = 0
-  }): void
+    before::(n: N, depth: number)=> = =>
+    after::(n: N, depth: number)=> = =>
+    depth::number = 0
+  })
     before @, depth
     for c of @children
       c.visit { before, after, depth: depth + @depthInc }
@@ -28,25 +23,58 @@ class N
 
   undefer()
 
-Context ::= { runBlock: (current: N, codeBlock: =>) => void }
+  asFunction(context: Context)
+    Object.setPrototypeOf context@runBlock(@), @
 
+class Context
+  stack: N[] = []
+
+  @(root: N)
+    @stack.push root
+
+  addChild<T < N>(n: T)
+    @stack.at(-1)!.children.push n
+    n
+
+  runBlock<T < N>(parent: T, codeBlock = =>): T
+    @stack.push parent
+    codeBlock()
+    @stack.pop()
+    parent
+
+interface Callable
+  (cb: =>): N
+
+// This merges with Literal's interface so that TS knows instances of Literal are callable
 interface Literal extends Callable
 
 class Literal < N
-  str: string
   depthInc = 1
 
   @(@str: string, context: Context)
     super()
-
-    fn := (codeBlock: =>) =>
-      context.runBlock(@, codeBlock)
-      @
-
-    return Object.setPrototypeOf fn, @
+    return @asFunction(context)
 
   selfContent()
     @str
+
+interface Template extends Callable
+
+class Template < N
+  depthInc = 1
+
+  @(@strs: TemplateStringsArray, @values: unknown[], context: Context)
+    super()
+    return @asFunction(context)
+
+  selfContent()
+    [firstStr, ...restStrs] := @strs
+    values := [...@values]
+    src .= firstStr
+    for str of restStrs
+      src += values.shift()
+      src += str
+    src
 
 class Deferred < N
   @(@context: Context, @block: =>)
@@ -55,20 +83,14 @@ class Deferred < N
   undefer()
     @context.runBlock(@, @block)
 
-function makeContextFn(parentContext: { current: N })
-  (block: =>) =>
-    block()
-
-GenOptions ::= {
+interface GenOptions
   indent: string
   writeLine: (str: string) => void
-}
-GenCodeBlock ::= (
-  code: CodeEmit,
-  helpers: {
-    defer: (cb: =>) => void
-  }
-) =>
+
+interface GenCodeBlockHelpers
+  defer: (cb: =>) => void
+
+GenCodeBlock ::= (code: CodeEmit, helpers: GenCodeBlockHelpers) =>
 
 function cecil(options: Partial<GenOptions> = {})
   opts: GenOptions := {
@@ -93,39 +115,20 @@ function cecil(options: Partial<GenOptions> = {})
 
 function generate({ writeLine, indent}: GenOptions,  genCb: GenCodeBlock)
   root := new N()
-  stack := [root]
-  addChild := (n: N) => stack.at(-1)!.children.push n
-
-  context := {
-    runBlock(parent: N, block: =>)
-      stack.push parent
-      block()
-      stack.pop()
-  }
+  context := new Context(root)
 
   code: CodeEmit := (strs, ...rest) =>
-    let src: string
-    cb?: => .= undefined
-
-    if typeof strs is 'string'
-      src = strs
-      cb = rest[0] as (=>)?
-    else
-      [firstStr, ...restStrs] := strs
-      src = firstStr
-      for str of restStrs
-        src += rest.shift()
-        src += str
-
-    new Literal(src, context)
-      ||> addChild
-      ||> (n) => (cb && context.runBlock(n, cb))
+    context.addChild
+      if typeof strs is 'string'
+        cb := rest[0] as =>?
+        new Literal(strs, context) |> context.runBlock(., cb)
+      else
+        new Template(strs, rest, context)
 
   function defer(cb: =>)
-    new Deferred(context, cb)
-      ||> addChild
+    context.addChild new Deferred(context, cb)
 
-  genCb(code, { defer })
+  genCb code, { defer }
 
   root.visit after: (n) => n.undefer()
 
@@ -150,4 +153,4 @@ cecil().log (c, { defer }) =>
   imports.push 'Import1'
 
   c`class ${model} extends Model {` =>
-    c`somethking`
+    c `somethking`
