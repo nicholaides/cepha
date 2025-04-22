@@ -11,6 +11,9 @@ class N
   selfContent(): string?
     undefined
 
+  afterContent(_: AfterContentArgs): string?
+    undefined
+
   visit({
     before::(n: N, depth: number)=> = =>
     after::(n: N, depth: number)=> = =>
@@ -25,6 +28,10 @@ class N
 
   asFunction(context: Context)
     Object.setPrototypeOf context@runBlock(@), @
+
+interface AfterContentArgs
+  closers: Record<string, string?>
+
 
 class Context
   stack: N[] = []
@@ -45,8 +52,9 @@ class Context
 interface Callable
   (cb: =>): N
 
+
 // This merges with Literal's interface so that TS knows instances of Literal are callable
-interface Literal extends Callable
+interface Literal < Callable
 
 class Literal < N
   depthInc = 1
@@ -58,7 +66,13 @@ class Literal < N
   selfContent()
     @str
 
-interface Template extends Callable
+  afterContent({ closers }: AfterContentArgs)
+    if @children#
+      closersFor(@str, closers)
+
+
+// This merges with Template's interface so that TS knows instances of Template are callable
+interface Template < Callable
 
 class Template < N
   depthInc = 1
@@ -76,6 +90,32 @@ class Template < N
       src += str
     src
 
+  afterContent({ closers }: AfterContentArgs)
+    if @children#
+      closersFor(@strs.at(-1)!, closers)
+
+
+function closersFor(str: string, closers: Record<string, string?>)
+  let output: string?
+
+  input .= str
+
+  while input#
+    for [left, right] of Object.entries(closers)
+      if input.endsWith(left)
+        if right?
+          output ?= ''
+          output += right
+
+        input = input.slice(0, -left#)
+
+        continue while
+
+    break
+
+  output
+
+
 class Deferred < N
   @(@context: Context, @block: =>)
     super()
@@ -83,14 +123,17 @@ class Deferred < N
   undefer()
     @context.runBlock(@, @block)
 
+
 interface GenOptions
   indent: string
   writeLine: (str: string) => void
+
 
 interface GenCodeBlockHelpers
   defer: (cb: =>) => void
 
 GenCodeBlock ::= (code: CodeEmit, helpers: GenCodeBlockHelpers) =>
+
 
 function cecil(options: Partial<GenOptions> = {})
   opts: GenOptions := {
@@ -113,6 +156,7 @@ function cecil(options: Partial<GenOptions> = {})
       generate({ ...opts, writeLine: console.log}, cb)
   }
 
+
 function generate({ writeLine, indent}: GenOptions,  genCb: GenCodeBlock)
   root := new N()
   context := new Context(root)
@@ -132,11 +176,26 @@ function generate({ writeLine, indent}: GenOptions,  genCb: GenCodeBlock)
 
   root.visit after: (n) => n.undefer()
 
-  root.visit before: (n, depth) =>
-    content := n.selfContent()
-    if content?
-      padding := [1..depth].map(=> indent).join('')
-      writeLine padding + content
+  function padding(depth: number)
+    [1..depth].map(=> indent).join('')
+
+  closers := {
+    '{': '}'
+    '[': ']'
+    '(': ')'
+    '<': '>'
+    ' ': undefined
+  }
+
+  root.visit
+    before: (n, depth) =>
+      content := n.selfContent()
+      if content?
+        writeLine padding(depth) + content
+    after: (n, depth) =>
+      content := n.afterContent({ closers })
+      if content?
+        writeLine padding(depth) + content
 
 
 cecil().log (c, { defer }) =>
@@ -152,5 +211,7 @@ cecil().log (c, { defer }) =>
 
   imports.push 'Import1'
 
-  c`class ${model} extends Model {` =>
-    c `somethking`
+  c`class ${model} extends Model ({` =>
+    c("somethking {") =>
+      c`name: string`
+    c `somethking {`
