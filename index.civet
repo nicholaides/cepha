@@ -127,6 +127,7 @@ class Deferred < N
 interface GenOptions
   indent: string
   writeLine: (str: string) => void
+  closers: Record<string, string?>
 
 
 interface GenCodeBlockHelpers
@@ -135,10 +136,20 @@ interface GenCodeBlockHelpers
 GenCodeBlock ::= (code: CodeEmit, helpers: GenCodeBlockHelpers) =>
 
 
+defaultClosers := {
+  '{': '}'
+  '[': ']'
+  '(': ')'
+  '<': '>'
+  ' ': undefined
+}
+
+
 function cecil(options: Partial<GenOptions> = {})
   opts: GenOptions := {
     indent: '  '
     writeLine: console.log
+    closers: defaultClosers
     ...options
   }
 
@@ -157,7 +168,7 @@ function cecil(options: Partial<GenOptions> = {})
   }
 
 
-function generate({ writeLine, indent}: GenOptions,  genCb: GenCodeBlock)
+function generate({ writeLine, indent, closers }: GenOptions,  genCb: GenCodeBlock)
   root := new N()
   context := new Context(root)
 
@@ -178,14 +189,6 @@ function generate({ writeLine, indent}: GenOptions,  genCb: GenCodeBlock)
 
   function padding(depth: number)
     [1..depth].map(=> indent).join('')
-
-  closers := {
-    '{': '}'
-    '[': ']'
-    '(': ')'
-    '<': '>'
-    ' ': undefined
-  }
 
   root.visit
     before: (n, depth) =>
