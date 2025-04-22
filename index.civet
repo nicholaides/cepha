@@ -189,15 +189,13 @@ function generate({ writeLine, indent, closers }: GenOptions,  genCb: GenCodeBlo
 
   padding := indent@repeat
 
+  writeContentLine := (depth: number, content: string?) =>
+    if content?
+      writeLine padding(depth) + content
+
   root.visit
-    before: (n, depth) =>
-      content := n.selfContent()
-      if content?
-        writeLine padding(depth) + content
-    after: (n, depth) =>
-      content := n.afterContent({ closers })
-      if content?
-        writeLine padding(depth) + content
+    before: (n, depth) => writeContentLine depth, n.selfContent()
+    after:  (n, depth) => writeContentLine depth, n.afterContent({ closers })
 
 
 cecil().log (c, { defer }) =>
