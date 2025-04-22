@@ -29,8 +29,11 @@ class N
   asFunction(context: Context)
     Object.setPrototypeOf context@runBlock(@), @
 
+
+Closers ::= Record<string, string?>
+
 interface AfterContentArgs
-  closers: Record<string, string?>
+  closers: Closers
 
 
 class Context
@@ -49,6 +52,7 @@ class Context
     @stack.pop()
     parent
 
+
 interface Callable
   (cb: =>): N
 
@@ -61,7 +65,7 @@ class Literal < N
 
   @(@str: string, context: Context)
     super()
-    return @asFunction(context)
+    return @asFunction(context) // the return is really needed here
 
   selfContent()
     @str
@@ -95,7 +99,7 @@ class Template < N
       closersFor(@strs.at(-1)!, closers)
 
 
-function closersFor(str: string, closers: Record<string, string?>)
+function closersFor(str: string, closers: Closers)
   let output: string?
 
   input .= str
@@ -121,13 +125,13 @@ class Deferred < N
     super()
 
   undefer()
-    @context.runBlock(@, @block)
+    @context.runBlock @, @block
 
 
 interface GenOptions
   indent: string
-  writeLine: (str: string) => void
-  closers: Record<string, string?>
+  writeLine: (str: string) =>
+  closers: Closers
 
 
 interface GenCodeBlockHelpers
@@ -189,7 +193,7 @@ function generate({ writeLine, indent, closers }: GenOptions,  genCb: GenCodeBlo
 
   padding := indent@repeat
 
-  writeContentLine := (depth: number, content: string?) =>
+  function writeContentLine(depth: number, content: string?)
     if content?
       writeLine padding(depth) + content
 
