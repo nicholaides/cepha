@@ -169,7 +169,7 @@ function cecil(options: Partial<GenOptions> = {})
 
 
 function generate({ writeLine, indent, closers }: GenOptions,  genCb: GenCodeBlock)
-  root := new N()
+  root := new N
   context := new Context(root)
 
   code: CodeEmit := (strs, ...rest) =>
@@ -187,8 +187,7 @@ function generate({ writeLine, indent, closers }: GenOptions,  genCb: GenCodeBlo
 
   root.visit after: (n) => n.undefer()
 
-  function padding(depth: number)
-    [1..depth].map(=> indent).join('')
+  padding := indent@repeat
 
   root.visit
     before: (n, depth) =>
