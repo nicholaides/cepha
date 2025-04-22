@@ -5,7 +5,7 @@
   "author": "Mike Nicholaides <mike@nicholaides.com>",
   "license": "MIT",
   "devDependencies": {
-    "@danielx/civet": "^0.9.7"
+    "@danielx/civet": "^0.10.2"
   },
   "dependencies": {
     "typescript": "^5.8.2"
