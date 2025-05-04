@@ -72,27 +72,17 @@ describe "cecil", =>
         """
 
   describe "outputting code", =>
-    describe "template", =>
-      it "outputs code", =>
-        assert.equal
-          cecil().string (c) =>
-            c`echo NO`
+    it "outputs code", =>
+      assert.equal
+        cecil().string (c) =>
+          c`echo template`
+          c "echo literal"
 
-          """
-          echo NO
+        """
+        echo template
+        echo literal
 
-          """
-
-    describe "literal", =>
-      it "outputs code", =>
-        assert.equal
-          cecil().string (c) =>
-            c "echo NO"
-
-          """
-          echo NO
-
-          """
+        """
 
     it "outputs multiple lines", =>
       assert.equal
