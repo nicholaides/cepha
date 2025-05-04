@@ -151,7 +151,7 @@ defaultClosers := {
 }
 
 
-export function cecil(options: Partial<GenOptions> = {})
+export function cepha(options: Partial<GenOptions> = {})
   opts: GenOptions := {
     indent: '  '
     writeLine: console.log
@@ -205,7 +205,7 @@ function generate({ writeLine, indent, closers }: GenOptions,  genCb: GenCodeBlo
     after:  (n, depth) => writeContentLine depth, n.afterContent({ closers })
 
 
-// cecil().log (c, { defer }) =>
+// cepha().log (c, { defer }) =>
 //   model := 'User'
 //   field_name := 'name'
 
