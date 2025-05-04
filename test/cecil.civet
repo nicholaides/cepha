@@ -1,5 +1,5 @@
 assert from node:assert
-import { cecil, type GenCodeBlock } from '../index.civet'
+import { cecil } from '../index.civet'
 
 describe "cecil", =>
   describe "nesting generation calls", =>
@@ -129,7 +129,6 @@ describe "cecil", =>
 
             """
 
-
         it "closes opened brackets even with no children", =>
           assert.equal
             cecil().string (c) =>
@@ -143,8 +142,6 @@ describe "cecil", =>
               }
 
             """
-
-
 
       describe "indentation", =>
         it "indents blocks", =>
@@ -171,16 +168,12 @@ describe "cecil", =>
 
             """
 
-
-
-
     xdescribe "reindenting multiline strings", =>
     xdescribe "adding trailing newlines to multiline strings", =>
 
     describe "deferred code blocks", =>
       it "defers code blocks for evaluation", =>
         assert.equal
-
           cecil().string (c, { defer }) =>
             items: string[] := []
             defer =>
