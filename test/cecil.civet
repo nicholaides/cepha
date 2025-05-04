@@ -119,6 +119,17 @@ describe "cecil", =>
 
             """
 
+        it "doesn't add a closing bracket if closers are found but are all undefined", =>
+          assert.equal
+            cecil(closers: { '\t': undefined, ' ': undefined, '(': ')' }).string (c) =>
+              c`outer template\t \t {`
+              c "outer literal\t \t {", =>
+            ```
+              outer template\t \t {
+              outer literal\t \t {
+
+            ```
+
         it "closes opened brackets even with no children", =>
           assert.equal
             cecil().string (c) =>
@@ -292,3 +303,13 @@ describe "closersFor", =>
     assert.equal
       closersFor("a", aa: "AA")
       undefined
+
+  it "returns undefined when the only matched closers are undefined", =>
+    assert.equal
+      closersFor("a\t ", ' ': undefined, "\t": undefined)
+      undefined
+
+  it "skips found closers that are undefined", =>
+    assert.equal
+      closersFor("a{\t (", ' ': undefined, "\t": undefined, "{": "}", "(": ")")
+      ")}"
