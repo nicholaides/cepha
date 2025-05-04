@@ -133,6 +133,47 @@ describe "cecil", =>
 
             """
 
+        describe "closes opened brackets for template strings only for the last segment", =>
+          it 'with a blank string in the value', =>
+            assert.equal
+              cecil().string (c) =>
+                c`(${""}{` =>
+              """
+                ({
+                }
+
+              """
+
+          it 'with a non-blank string in the value', =>
+            assert.equal
+              cecil().string (c) =>
+                c`(${"value"}{` =>
+              """
+                (value{
+                }
+
+              """
+
+          it 'with an open bracket in the value', =>
+            assert.equal
+              cecil().string (c) =>
+                c`${"value("}{` =>
+              """
+                value({
+                }
+
+              """
+
+          it 'with an open bracket in the value in the first position', =>
+            assert.equal
+              cecil().string (c) =>
+                c`${"value("}` =>
+
+              """
+                value(
+
+              """
+
       describe "indentation", =>
         it "indents blocks", =>
           assert.equal
