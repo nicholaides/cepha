@@ -28,6 +28,7 @@ modelDefinition := cepha().string (c) =>
 console.log modelDefinition
 ```
 
+Outputs:
 ```typescript
 class User extends Model {
   id: number
@@ -53,6 +54,7 @@ cepha().string (c) =>
     c`the square of ${n} is ${n**2}`
 ```
 
+Generates:
 ```
 squaring numbers:
 the square of 1 is 1
@@ -78,6 +80,7 @@ cepha().string (c) =>
       c`super()`
 ```
 
+Generates:
 ```typescript
 class User extends Model {
   id: number
@@ -118,6 +121,7 @@ cepha().string (c, { defer }) =>
     c`class ${modelName} extends ${parentClass} {}`
 ```
 
+Generates:
 ```typescript
 import { Model } from './Model'
 import { CmsObject } from './CmsObject'
