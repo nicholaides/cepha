@@ -53,7 +53,7 @@ describe "cecil", =>
 
         """
 
-    xit "can generate and include the contents of another", =>
+    it "can generate and include the contents of another", =>
       assert.equal
         cecil().string (c) =>
           c`start outer` =>
@@ -67,6 +67,7 @@ describe "cecil", =>
           inner {
             content
           }
+
           end outer
 
         """
@@ -242,6 +243,25 @@ describe "cecil", =>
               }
 
             """
+
+        it "reindents multi-line strings but not blank lines", =>
+          assert.equal
+            cecil().string (c) =>
+              c`outer` =>
+                c```
+                  func()
+
+                    body
+                ```
+
+            """
+              outer
+                func()
+
+                  body
+
+            """
+
 
 
     xdescribe "reindenting multiline strings", =>
