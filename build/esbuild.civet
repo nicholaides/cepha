@@ -1,0 +1,17 @@
+esbuild from esbuild
+civetPlugin from @danielx/civet/esbuild
+
+esbuild.build({
+  entryPoints: ['index.civet']
+  bundle: true
+  keepNames: true
+  format: "cjs"
+  -sourcemap
+  +minify
+  outdir: 'dist/'
+  plugins: [
+    civetPlugin
+      ts: "civet"
+      emitDeclaration: true
+  ]
+}).catch -> process.exit 1
