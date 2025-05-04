@@ -5,9 +5,25 @@
   "author": "Mike Nicholaides <mike@nicholaides.com>",
   "license": "MIT",
   "devDependencies": {
-    "@danielx/civet": "^0.10.2"
+    "@danielx/civet": "^0.10.2",
+    "@types/mocha": "^10.0.10",
+    "@types/node": "^22.15.3",
+    "mocha": "^11.2.2"
   },
   "dependencies": {
     "typescript": "^5.8.2"
+  },
+  "mocha": {
+    "extension": [
+      "civet"
+    ],
+    "import": [
+      "@danielx/civet/register"
+    ],
+    "reporter": "dot",
+    "recursive": true,
+    "spec": [
+      "test"
+    ]
   }
 }

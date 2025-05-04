@@ -1,0 +1,224 @@
+assert from node:assert
+import { cecil, type GenCodeBlock } from '../index.civet'
+
+describe "cecil", =>
+  describe "nesting generation calls", =>
+    it "can generate in sequence", =>
+      assert.equal
+        cecil().string (c) =>
+          c`inner {` =>
+            c`content`
+
+        """
+          inner {
+            content
+          }
+
+        """
+
+      assert.equal
+        cecil().string (c) =>
+          c`start outer`
+          c`end outer`
+
+        """
+          start outer
+          end outer
+
+        """
+
+    it "can generate while another is generating", =>
+      let inner
+      outer := cecil().string (c) =>
+        c`start outer`
+        inner = cecil().string (c) =>
+          c`inner {` =>
+            c`content`
+        c`end outer`
+
+      assert.equal
+        inner
+        """
+          inner {
+            content
+          }
+
+        """
+
+      assert.equal
+        outer
+        """
+          start outer
+          end outer
+
+        """
+
+    xit "can generate and include the contents of another", =>
+      assert.equal
+        cecil().string (c) =>
+          c`start outer`
+          c cecil().string (c2) =>
+            c2`inner {` =>
+              c2`content`
+          c`end outer`
+
+        """
+        start outer
+        inner {
+          content
+        }
+        end outer
+
+        """
+
+  describe "outputting code", =>
+    describe "template", =>
+      it "outputs code", =>
+        assert.equal
+          cecil().string (c) =>
+            c`echo NO`
+
+          """
+          echo NO
+
+          """
+
+    describe "literal", =>
+      it "outputs code", =>
+        assert.equal
+          cecil().string (c) =>
+            c "echo NO"
+
+          """
+          echo NO
+
+          """
+
+    it "outputs multiple lines", =>
+      assert.equal
+        cecil().string (c) =>
+          c`line 1`
+          c 'line 2'
+          c`line 3`
+
+        """
+          line 1
+          line 2
+          line 3
+
+        """
+
+    describe "blocks", =>
+      describe "ending pairs", =>
+        it "closes opened brackets", =>
+          assert.equal
+            cecil().string (c) =>
+              c`outer {` =>
+                c`inner`
+
+              c 'outer2 {', =>
+                c`inner2`
+
+            """
+              outer {
+                inner
+              }
+              outer2 {
+                inner2
+              }
+
+            """
+
+
+        it "closes opened brackets even with no children", =>
+          assert.equal
+            cecil().string (c) =>
+              c`outer template {` =>
+              c "outer literal {", =>
+
+            """
+              outer template {
+              }
+              outer literal {
+              }
+
+            """
+
+
+
+      describe "indentation", =>
+        it "indents blocks", =>
+          assert.equal
+            cecil().string (c) =>
+              c`start outer`
+              c`inner template {` =>
+                c`content`
+
+              c 'inner literal {', =>
+                c`content`
+
+              c`end outer`
+
+            """
+              start outer
+              inner template {
+                content
+              }
+              inner literal {
+                content
+              }
+              end outer
+
+            """
+
+
+
+
+    xdescribe "reindenting multiline strings", =>
+    xdescribe "adding trailing newlines to multiline strings", =>
+
+    describe "deferred code blocks", =>
+      it "defers code blocks for evaluation", =>
+        assert.equal
+
+          cecil().string (c, { defer }) =>
+            items: string[] := []
+            defer =>
+              c`export { ${items.join(", ")} }`
+
+            for klass of ["A", "B", "C"]
+              items.push klass
+              c`class ${klass}`
+
+
+          """
+            export { A, B, C }
+            class A
+            class B
+            class C
+
+          """
+
+
+      it "defers code blocks for evaluation and keep proper indentation level", =>
+
+        assert.equal
+          cecil().string (c, { defer }) =>
+            items: string[] := []
+            c`export {` =>
+              defer =>
+                c`${items.join(", ")}`
+
+            for klass of ["A", "B", "C"]
+              items.push klass
+              c`class ${klass}`
+
+          """
+            export {
+              A, B, C
+            }
+            class A
+            class B
+            class C
+
+          """

@@ -5,7 +5,7 @@ CodeEmit ::= (
 ) => Literal|Template
 
 class N
-  children: N[] = []
+  children?: N[]
   depthInc = 0
 
   selfContent(): string?
@@ -20,8 +20,9 @@ class N
     depth::number = 0
   })
     before @, depth
-    for c of @children
-      c.visit { before, after, depth: depth + @depthInc }
+    if @children
+      for c of @children
+        c.visit { before, after, depth: depth + @depthInc }
     after @, depth
 
   undefer()
@@ -43,11 +44,12 @@ class Context
     @stack.push root
 
   addChild<T < N>(n: T)
-    @stack.at(-1)!.children.push n
+    @stack.at(-1)!.children!.push n
     n
 
   runBlock<T < N>(parent: T, codeBlock = =>): T
     @stack.push parent
+    parent.children = []
     codeBlock()
     @stack.pop()
     parent
@@ -71,7 +73,7 @@ class Literal < N
     @str
 
   afterContent({ closers }: AfterContentArgs)
-    if @children#
+    if @children?
       closersFor(@str, closers)
 
 
@@ -95,7 +97,7 @@ class Template < N
     src
 
   afterContent({ closers }: AfterContentArgs)
-    if @children#
+    if @children?
       closersFor(@strs.at(-1)!, closers)
 
 
@@ -105,7 +107,7 @@ function closersFor(str: string, closers: Closers)
   input .= str
 
   while input#
-    for [left, right] of Object.entries(closers)
+    for left, right in closers
       if input.endsWith(left)
         if right?
           output ?= ''
@@ -137,7 +139,7 @@ interface GenOptions
 interface GenCodeBlockHelpers
   defer: (cb: =>) => void
 
-GenCodeBlock ::= (code: CodeEmit, helpers: GenCodeBlockHelpers) =>
+export GenCodeBlock ::= (code: CodeEmit, helpers: GenCodeBlockHelpers) =>
 
 
 defaultClosers := {
@@ -149,7 +151,7 @@ defaultClosers := {
 }
 
 
-function cecil(options: Partial<GenOptions> = {})
+export function cecil(options: Partial<GenOptions> = {})
   opts: GenOptions := {
     indent: '  '
     writeLine: console.log
@@ -187,7 +189,8 @@ function generate({ writeLine, indent, closers }: GenOptions,  genCb: GenCodeBlo
   function defer(cb: =>)
     context.addChild new Deferred(context, cb)
 
-  genCb code, { defer }
+  context.runBlock root, =>
+    genCb code, { defer }
 
   root.visit after: (n) => n.undefer()
 
@@ -202,20 +205,20 @@ function generate({ writeLine, indent, closers }: GenOptions,  genCb: GenCodeBlo
     after:  (n, depth) => writeContentLine depth, n.afterContent({ closers })
 
 
-cecil().log (c, { defer }) =>
-  model := 'User'
-  field_name := 'name'
+// cecil().log (c, { defer }) =>
+//   model := 'User'
+//   field_name := 'name'
 
-  imports: string[] := []
+//   imports: string[] := []
 
-  defer =>
-    c`import ${imports.join(', ')}` =>
-      c`from './models'`
-      c``
+//   defer =>
+//     c`import ${imports.join(', ')}` =>
+//       c`from './models'`
+//       c``
 
-  imports.push 'Import1'
+//   imports.push 'Import1'
 
-  c`class ${model} extends Model ({` =>
-    c("somethking {") =>
-      c`name: string`
-    c `somethking {`
+//   c`class ${model} extends Model ({` =>
+//     c("somethking {") =>
+//       c`name: string`
+//     c `somethking {`
