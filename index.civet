@@ -198,7 +198,7 @@ function generate({ writeLine, indent, closers }: GenOptions,  genCb: GenCodeBlo
 
   function writeContentLine(depth: number, content: string?)
     if content?
-      writeLine padding(depth) + content
+      writeLine content.replaceAll(/^/gm, padding(depth))
 
   root.visit
     before: (n, depth) => writeContentLine depth, n.selfContent()
