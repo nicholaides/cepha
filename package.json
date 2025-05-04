@@ -11,17 +11,13 @@
     "mocha": "^11.2.2",
     "typescript": "^5.8.3"
   },
+  "scripts": {
+    "test": "mocha"
+  },
   "mocha": {
-    "extension": [
-      "civet"
-    ],
-    "import": [
-      "@danielx/civet/register"
-    ],
-    "reporter": "dot",
+    "extension": ["civet"],
+    "import": ["@danielx/civet/register"],
     "recursive": true,
-    "spec": [
-      "test"
-    ]
+    "spec": ["test"]
   }
 }
