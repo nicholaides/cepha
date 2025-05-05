@@ -96,9 +96,9 @@ class User extends Model {
 
 ### Deferred code blocks
 
-Use the `defer` helper to defer code block evaluation until after the rest of the block have been evaluated.
+Use the `defer` helper to defer code block evaluation until after the rest of the document has been evaluated.
 
-When a deferred block is finally evaluated, it's contents are inserted where the deferred block was.
+When a deferred block is finally evaluated, its contents are inserted where the deferred block was.
 
 ```typescript
 models := {
