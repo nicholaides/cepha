@@ -11,6 +11,7 @@
     "@danielx/civet": "^0.10.3",
     "@types/mocha": "^10.0.10",
     "@types/node": "^22.15.3",
+    "esbuild": "^0.25.6",
     "mocha": "^11.2.2",
     "typescript": "^5.8.3"
   },
@@ -19,9 +20,15 @@
     "test": "mocha"
   },
   "mocha": {
-    "extension": ["civet"],
-    "import": ["@danielx/civet/register"],
+    "extension": [
+      "civet"
+    ],
+    "import": [
+      "@danielx/civet/register"
+    ],
     "recursive": true,
-    "spec": ["test"]
+    "spec": [
+      "test"
+    ]
   }
 }
