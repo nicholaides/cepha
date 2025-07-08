@@ -17,6 +17,7 @@
   },
   "scripts": {
     "build": "./build/compile",
+    "clean": "rm -rf ./dist",
     "test": "mocha"
   },
   "mocha": {
