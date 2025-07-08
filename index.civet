@@ -203,22 +203,3 @@ function generate({ writeLine, indent, closers }: GenOptions,  genCb: GenCodeBlo
   root.visit
     before: (n, depth) => writeContentLine depth, n.selfContent()
     after:  (n, depth) => writeContentLine depth, n.afterContent({ closers })
-
-
-// cepha().log (c, { defer }) =>
-//   model := 'User'
-//   field_name := 'name'
-
-//   imports: string[] := []
-
-//   defer =>
-//     c`import ${imports.join(', ')}` =>
-//       c`from './models'`
-//       c``
-
-//   imports.push 'Import1'
-
-//   c`class ${model} extends Model ({` =>
-//     c("somethking {") =>
-//       c`name: string`
-//     c `somethking {`
