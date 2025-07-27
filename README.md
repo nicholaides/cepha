@@ -29,7 +29,7 @@ console.log modelDefinition
 ```
 
 Outputs:
-```typescript
+```js
 class User extends Model {
   id: number
   override get name(): string {
@@ -45,7 +45,7 @@ class User extends Model {
 
 ### Emit code imperatively
 
-```typescript
+```js
 cepha().string (c) =>
 
   c`squaring numbers:`
@@ -69,7 +69,7 @@ Block can be nested and the indentation is maintained.
 
 When nesting blocks, any opening brackets at the end of the parent block's string will be closed.
 
-```typescript
+```js
 cepha().string (c) =>
   c`class User extends Model {` =>
     c`id: number`
@@ -81,7 +81,7 @@ cepha().string (c) =>
 ```
 
 Generates:
-```typescript
+```js
 class User extends Model {
   id: number
   constructor(
@@ -100,7 +100,7 @@ Use the `defer` helper to defer code block evaluation until after the rest of th
 
 When a deferred block is finally evaluated, its contents are inserted where the deferred block was.
 
-```typescript
+```js
 models := {
   User:    { parentClass: "Model" },
   Post:    { parentClass: "Model" },
@@ -122,7 +122,7 @@ cepha().string (c, { defer }) =>
 ```
 
 Generates:
-```typescript
+```js
 import { Model } from './Model'
 import { CmsObject } from './CmsObject'
 
